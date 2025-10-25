@@ -1,0 +1,69 @@
+cells:
+  - kind: 2
+    value: "ALTER TABLE CURSANTI ADD CONSTRAINT unique_email UNIQUE (email)\r
+
+      \r
+
+      SELECT * FROM CURSANTI;  -- oracle salveaza numele tabelelor cu litere
+      mari oricare ar fi initializarea\r
+
+      select * from user_constraints where table_name = 'CURSANTI';\r
+
+      \r
+
+      INSERT INTO cursanti (id_student, nume, email) VALUES (10,'george',
+      NULL);\r
+
+      \r
+
+      /*Sa se adauge in tabela salariati toti angajatii din tabela angajati care
+      lucreaza in departamentele 20, 30 si 50.\r
+
+      Si sa se finalizeze tranzactia (salvarea modificarii).*/\r
+
+      \r
+
+      ALTER TABLE salariati ADD CONSTRAINT PRIMARY_KEY_SALARIATI PRIMARY KEY
+      (id_angajat);\r
+
+      INSERT INTO salariati select * from angajat where id_departament IN
+      (20,30,50);\r
+
+      /*where id_departament = 30 OR id_departament = 30, OR id_departament =
+      50*/\r
+
+      /*sau*/\r
+
+      \r
+
+      delete from salariati;\r
+
+      \r
+
+      insert into salariati (id_angajat, nume, data_angajare, email) values
+      ('&ID_ANGAJAT', '&nume', TO_DATE('&DATA_ANGAJARE', 'mon
+      dd,yyyy'),'&email');\r
+
+      select * from salariati where id_angajat = 500;\r
+
+      select * from salariati where salariul < 3000;\r
+
+      \r
+
+      --update\r
+
+      update salariati set salariul = salariul +100 where salariul < 3000;\r
+
+      --sa se selecteze toti angajatii din salariati angajati inainte de
+      01.10.2025\r
+
+      \r
+
+      select * from salariati where data_angajare < TO_DATE('01.10.2025',
+      'mm.dd.yyyy');\r
+
+      \r
+
+      UPDATE salariati set salariul =(select salariul from angajati where
+      id_angajat = 125)  where id_manager = 122;\r\n"
+    languageId: oracle-sql

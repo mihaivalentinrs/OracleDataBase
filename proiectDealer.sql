@@ -1,4 +1,4 @@
--- PASUL 1: Tabelul pentru clienți
+--PASUL 1: Tabelul pentru clienți
 -- Aici stocăm datele clienților dealership-ului
 CREATE TABLE clienti_dealer(
     id_client NUMBER(10) PRIMARY KEY,
@@ -19,7 +19,7 @@ CREATE TABLE marca(
 
 -- PASUL 3: Tabelul pentru modele auto
 -- Ex: Golf, Passat, A4 etc.
--- TREBUIE creat după "marca" pentru că face referință la id_marca
+
 CREATE TABLE modele(
     id_model NUMBER(10) PRIMARY KEY,
     id_marca NUMBER(10) NOT NULL,
@@ -30,24 +30,23 @@ CREATE TABLE modele(
 );
 
 -- PASUL 4: Tabelul pentru departamente
--- NU includemFK către angajați încă (rezolvăm referința circulară)
+
 CREATE TABLE departament_dealer(
     id_departament NUMBER(10) PRIMARY KEY,
-    id_manager NUMBER(10),  -- Deocamdată fără FK
+    id_manager NUMBER(10),
     nume_manager VARCHAR2(100),
     prenume_manager VARCHAR2(100),
     nume_departament VARCHAR2(50) NOT NULL,
     numar_angajati NUMBER(2,0) CHECK (numar_angajati > 0)
+  
 );
 
 -- PASUL 5: Tabelul pentru angajați
--- Acum putem face referință la departament_dealer (care deja există)
--- id_manager face referință la același tabel (self-reference)
+
 CREATE TABLE angajati_dealer(
     id_angajat NUMBER(10) PRIMARY KEY,
-    nume_angajat VARCHAR2(100),
-    prenume_angajat VARCHAR2(100),
-    departament VARCHAR2(100),
+    nume_angajat VARCHAR2(100) NOT NULL,
+    prenume_angajat VARCHAR2(100) NOT NULL,
     email_angajat VARCHAR2(100) NOT NULL,
     telefon_angajat VARCHAR2(15) UNIQUE,
     data_angajare DATE DEFAULT SYSDATE,
@@ -77,15 +76,22 @@ CREATE TABLE vanzari(
 -- Înregistrează reparațiile și reviziile
 CREATE TABLE service(
     id_service NUMBER(10) PRIMARY KEY,
-    id_marca NUMBER(10),
-    id_model NUMBER(10),
-    id_client NUMBER(10),
+    --id_marca NUMBER(10),
+    id_model NUMBER(10) NOT NULL,
+    id_client NUMBER(10) NOT NULL,
     data_intrarii_service DATE DEFAULT SYSDATE,
     data_iesire_service DATE,
-    cost_reparatii NUMBER(8,2),
+    cost_reparatii NUMBER(8,2) CHECK (cost_reparatii >=0),
     revizie VARCHAR2(3) CHECK (revizie IN ('DA', 'NU')),
     descriere_problema VARCHAR2(500),
-    CONSTRAINT fk_service_marca FOREIGN KEY (id_marca) REFERENCES marca(id_marca),
     CONSTRAINT fk_service_model FOREIGN KEY (id_model) REFERENCES modele(id_model),
-    CONSTRAINT fk_service_client FOREIGN KEY (id_client) REFERENCES clienti_dealer(id_client)
+    CONSTRAINT fk_service_client FOREIGN KEY (id_client) REFERENCES clienti_dealer(id_client),
+    CONSTRAINT check_date_service CHECK (
+        data_iesire_service IS NULL OR
+        data_iesire_service >= data_intrarii_service
+    )
 );
+
+ALTER TABLE departament_dealer ADD CONSTRAINT fk_departament_dealer FOREIGN KEY (id_manager) REFERENCES angajati_dealer(id_angajat)
+
+

@@ -111,10 +111,10 @@ VALUES (310, 7, 'Kona EV', 2022, 'SUV', 'used', 'HYU_KN_J2244668', 25000, 'elect
 
 --6.Vanzari
 
-INSERT INTO vanzari (id_vanzare, id_client, id_model, id_angajat, data_vanzare, pret_vanzare_euro) VALUES (401, 101, 301, 205, DATE '2025-03-25', 26262.63);
-INSERT INTO vanzari (id_vanzare, id_client, id_model, id_angajat, data_vanzare, pret_vanzare_euro) VALUES (402, 102, 302, 205, DATE '2025-04-01', 50505.05);
+INSERT INTO vanzari (id_vanzare, id_client, id_model, id_angajat, data_vanzare, pret_vanzare_euro) VALUES (401, 101, 301, 210, DATE '2025-03-25', 26262.63);
+INSERT INTO vanzari (id_vanzare, id_client, id_model, id_angajat, data_vanzare, pret_vanzare_euro) VALUES (402, 102, 302, 208, DATE '2025-04-01', 50505.05);
 INSERT INTO vanzari (id_vanzare, id_client, id_model, id_angajat, data_vanzare, pret_vanzare_euro) VALUES (403, 103, 303, 205, DATE '2025-04-10', 38383.84);
-INSERT INTO vanzari (id_vanzare, id_client, id_model, id_angajat, data_vanzare, pret_vanzare_euro) VALUES (404, 104, 304, 205, DATE '2025-04-15', 17171.72);
+INSERT INTO vanzari (id_vanzare, id_client, id_model, id_angajat, data_vanzare, pret_vanzare_euro) VALUES (404, 104, 304, 208, DATE '2025-04-15', 17171.72);
 INSERT INTO vanzari (id_vanzare, id_client, id_model, id_angajat, data_vanzare, pret_vanzare_euro) VALUES (405, 105, 305, 205, DATE '2025-04-20', 70707.07);
 
 
@@ -168,8 +168,17 @@ UPDATE modele SET putere =
     END
 WHERE id_model IN (301, 302, 303, 304, 305, 306, 307, 308, 309, 310);
 
-alter table vanzari modify pret_vanzare_euro number(7,2);
+INSERT INTO departament_dealer (id_departament, nume_departament) VALUES (2, 'Service & Reparatii');
+insert into departament_dealer(id_departament, nume_departament) values(2, 'Service/Reparatii');
 
+--Operatia Delete:
+insert into marca (id_marca, nume_marca, tara_marca) values(11, 'Mazda', 'Japonia');
+delete from marca where nume_marca = 'Mazda';
+select * from marca;
+
+alter table vanzari modify pret_vanzare_euro number(7,2);
+delete from vanzari;
+select * from vanzari;
 select * from clienti_dealer;
 select * from marca;
 select * from departament_dealer; --de verificat
@@ -179,5 +188,256 @@ select * from vanzari;
 select * from modele;
 select * from departament_dealer order by id_departament asc;
 
+delete from vanzari;
+select * from vanzari;
+rollback;
+select * from vanzari;
 
 --Exemple de interogari variate (SELECT)
+--1.Afisarea numelui si email-ului angajatilor care au id-ul intre 205 si 209.
+select nume_angajat|| ' ' || prenume_angajat as Nume_angajat, email_angajat from angajati_dealer where id_angajat in (205,206,207,208,209);
+
+--2.Afisarea modelelor care au fost vandute de angajati care au manager angajat cu id = 201 (Managerul cu id = 201)
+select  c.nume_model from vanzari a, modele c where a.id_model = c.id_model;
+select nume_model from modele m join vanzari v on m.id_model = v.id_model join angajati a on v.id_angajat = a.id_angajat where id_manager = 201;
+
+--3.Afișarea tuturor modelelor VW (id_marca = 1) fabricate după anul 2023.
+SELECT
+    m.nume_model,
+    m.an_fabricatie
+FROM
+    modele m
+WHERE
+    m.id_marca = 1 AND m.an_fabricatie > 2023;
+
+--4. Afișarea numelui complet al angajaților, numele departamentului și numele managerului direct (utilizând Self Join). (Self Join)
+SELECT
+    A.nume_angajat || ' ' || A.prenume_angajat AS Angajat,
+    D.nume_departament AS Departament,
+    M.nume_angajat || ' ' || M.prenume_angajat AS Manager
+FROM
+    angajati_dealer A
+JOIN
+    departament_dealer D ON A.id_departament = D.id_departament
+LEFT JOIN
+    angajati_dealer M ON A.id_manager = M.id_angajat
+ORDER BY
+    Departament, Angajat;
+
+--5. Afișarea numelui mărcii, numelui modelului și tipului de caroserie pentru toate mașinile rulate (tip_vehicul = 'used'). (Join Simplu)
+SELECT
+    MA.nume_marca,
+    MO.nume_model,
+    MO.tip_caroserie
+FROM
+    modele MO
+JOIN
+    marca MA ON MO.id_marca = MA.id_marca
+WHERE
+    MO.tip_vehicul = 'used';
+
+--6. Afișarea numelui complet al clienților și data înregistrării, ordonați după data înregistrării (Funcție de dată, formatare).
+SELECT
+    nume || ' ' || prenume AS Nume_Client,
+    TO_CHAR(data_inregistrare, 'DD-MON-YYYY') AS Data_Inregistrare_Formatata
+FROM
+    clienti_dealer
+ORDER BY
+    data_inregistrare DESC;
+
+--7. Numărul total de modele pentru fiecare țară de origine a mărcii. (Grupare Simplă
+SELECT
+    tara_marca,
+    COUNT(m.id_model) AS Numar_Modele
+FROM
+    marca r
+JOIN
+    modele m ON r.id_marca = m.id_marca
+GROUP BY
+    tara_marca
+ORDER BY
+    Numar_Modele DESC;
+
+--8. Marca/Mărcile cu cea mai mare capacitate cilindrică medie. (Funcție de Grup + Subcerere)
+SELECT
+    MA.nume_marca,
+    ROUND(AVG(MO.capacitate_cilindrica), 0) AS Capacitate_Medie
+FROM
+    marca MA
+JOIN
+    modele MO ON MA.id_marca = MO.id_marca
+GROUP BY
+    MA.nume_marca
+HAVING
+    AVG(MO.capacitate_cilindrica) = (
+        SELECT MAX(AVG(capacitate_cilindrica))
+        FROM modele
+        GROUP BY id_marca
+    );
+--9. Angajații și numărul de vânzări realizate, afișând doar pe cei care au vândut mai mult de o mașină. (Funcție de Grup + HAVING)
+SELECT
+    A.nume_angajat || ' ' || A.prenume_angajat AS Vanzator,
+    COUNT(V.id_vanzare) AS Numar_Vanzari
+FROM
+    angajati_dealer A
+JOIN
+    vanzari V ON A.id_angajat = V.id_angajat
+GROUP BY
+    A.nume_angajat, A.prenume_angajat
+HAVING
+    COUNT(V.id_vanzare) > 1
+ORDER BY
+    Numar_Vanzari DESC;
+--10. Costul total al reparațiilor (revizii 'NU') și reviziilor (revizii 'DA') separat. (Funcție de Grup cu CASE)
+
+SELECT
+    S.revizie,
+    SUM(S.cost_reparatii) AS Cost_Total
+FROM
+    service S
+GROUP BY
+    S.revizie;
+
+--11. Afișarea departamentelor și a statusului lor (folosind DECODE): Principal (Vânzări/Service) sau Suport (Restul).
+SELECT DISTINCT
+    nume_departament,
+    DECODE(nume_departament, 
+        'Vanzari Auto Noi', 'Principal',
+        'Vanzari Auto Rulate', 'Principal',
+        'Service/Reparatii', 'Principal',
+        'Suport') AS Status_Departament
+FROM
+    departament_dealer
+ORDER BY
+    Status_Departament DESC, nume_departament;
+
+--12. Afișarea listei de mașini cu clasificarea puterii (folosind CASE): 'Low Power' (<100 CP), 'Standard' (100-200 CP), 'High Power' (>200 CP).
+
+SELECT
+    nume_model,
+    putere,
+    CASE
+        WHEN putere < 100 THEN 'Low Power'
+        WHEN putere BETWEEN 100 AND 200 THEN 'Standard'
+        ELSE 'High Power'
+    END AS Clasificare_Putere
+FROM
+    modele
+WHERE
+    putere IS NOT NULL
+ORDER BY
+    putere DESC;
+
+--13. Calculul marjei de profit per vânzare (Marjă: $20\%$, $15\%$ sau $10\%$ în funcție de tipul de vehicul) (CASE cu calcule numerice).
+
+SELECT
+    V.id_vanzare,
+    M.nume_model,
+    V.pret_vanzare_euro,
+    M.tip_vehicul,
+    CASE M.tip_vehicul
+        WHEN 'new' THEN V.pret_vanzare_euro * 0.20 -- 20% marja
+        WHEN 'used' THEN V.pret_vanzare_euro * 0.15 -- 15% marja
+        ELSE V.pret_vanzare_euro * 0.10
+    END AS Marja_Estimata_Euro
+FROM
+    vanzari V
+JOIN
+    modele M ON V.id_model = M.id_model;
+
+--14. Afișarea stării service-ului (finalizat sau în lucru) folosind CASE și funcții de dată.
+
+SELECT
+    id_service,
+    id_client,
+    data_intrarii_service,
+    CASE
+        WHEN data_iesire_service IS NULL THEN 'In Lucru (Status Curent)'
+        ELSE 'Finalizat'
+    END AS Status_Service,
+    -- Calculul duratei (în zile) pentru lucrările finalizate
+    ROUND(data_iesire_service - data_intrarii_service, 0) AS Durata_Zile
+FROM
+    service;
+
+--15. Lista angajaților care au vândut mașini SAU care au intrat la service mașini (UNION).
+
+-- Angajați care au vândut
+SELECT
+    id_angajat,
+    nume_angajat,
+    prenume_angajat
+FROM
+    angajati_dealer
+WHERE
+    id_angajat IN (SELECT id_angajat FROM vanzari)
+UNION
+-- Angajați care lucrează în service
+SELECT
+    id_angajat,
+    nume_angajat,
+    prenume_angajat
+FROM
+    angajati_dealer
+WHERE
+    id_departament = 2 -- ID-ul departamentului Service
+ORDER BY
+    nume_angajat;
+
+--16. Mărcile care au modele NOI dar NU și modele RULATE (MINUS).
+
+SELECT nume_marca FROM marca MA
+JOIN modele MO ON MA.id_marca = MO.id_marca
+WHERE MO.tip_vehicul = 'new'
+MINUS
+SELECT nume_marca FROM marca MA
+JOIN modele MO ON MA.id_marca = MO.id_marca
+WHERE MO.tip_vehicul = 'used';
+
+--17. Modelele care au fost VÂNDUTE și care au intrat și în SERVICE (INTERSECT pe id_model).
+
+SELECT nume_model FROM modele
+WHERE id_model IN (SELECT id_model FROM vanzari)
+INTERSECT
+SELECT nume_model FROM modele
+WHERE id_model IN (SELECT id_model FROM service);
+
+--18. Găsirea clientului (sau clienților) care a plătit cel mai mare preț pe o mașină (Subcerere în WHERE).
+
+SELECT
+    nume || ' ' || prenume AS Client_Maxim,
+    (SELECT nume_model FROM modele WHERE id_model = V.id_model) AS Model_Vandut,
+    pret_vanzare_euro
+FROM
+    clienti_dealer C
+JOIN
+    vanzari V ON C.id_client = V.id_client
+WHERE
+    pret_vanzare_euro = (SELECT MAX(pret_vanzare_euro) FROM vanzari);
+
+--19. Departamentele care au angajați ce NU au nicio vânzare înregistrată (Subcerere cu NOT IN).
+
+SELECT
+    nume_departament
+FROM
+    departament_dealer
+WHERE
+    id_departament IN (
+        SELECT id_departament
+        FROM angajati_dealer
+        WHERE id_angajat NOT IN (SELECT DISTINCT id_angajat FROM vanzari)
+    )
+ORDER BY
+    nume_departament;
+
+--20. Lista modelelor cu putere peste media tuturor modelelor vândute (Subcerere scalară în WHERE).
+
+SELECT
+    m.nume_model,
+    m.putere
+FROM
+    modele m
+WHERE
+    m.putere > (SELECT AVG(putere) FROM modele WHERE putere IS NOT NULL)
+ORDER BY
+    m.putere DESC;
